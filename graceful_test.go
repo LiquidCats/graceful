@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/LiquidCats/graceful"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestSignalsContextCancel(t *testing.T) {
@@ -39,9 +40,7 @@ func TestSignalsReceived(t *testing.T) {
 
 	select {
 	case err := <-done:
-		if err != nil {
-			t.Fatalf("Expected nil error on signal reception, got %v", err)
-		}
+		assert.ErrorIs(t, err, graceful.ErrShutdownBySignal)
 	case <-time.After(1 * time.Second):
 		t.Fatal("Timed out waiting for signal to be handled")
 	}
