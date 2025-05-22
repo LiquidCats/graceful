@@ -10,6 +10,7 @@ import (
 
 	"github.com/LiquidCats/graceful"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSignalsContextCancel(t *testing.T) {
@@ -59,9 +60,8 @@ func TestWaitContextAllRunnersSucceed(t *testing.T) {
 		return nil
 	}
 
-	if err := graceful.WaitContext(ctx, runner1, runner2); err != nil {
-		t.Fatalf("Expected no error, got %v", err)
-	}
+	err := graceful.WaitContext(ctx, runner1, runner2)
+	require.NoError(t, err)
 }
 
 func TestWaitContextRunnerError(t *testing.T) {
@@ -79,12 +79,9 @@ func TestWaitContextRunnerError(t *testing.T) {
 	}
 
 	err := graceful.WaitContext(ctx, runner1, runner2)
-	if err == nil {
-		t.Fatalf("Expected an error, got nil")
-	}
-	if err.Error() != expectedErr.Error() {
-		t.Fatalf("Expected error %v, got %v", expectedErr, err)
-	}
+
+	assert.Error(t, err)
+	assert.ErrorIs(t, err, expectedErr)
 }
 
 func TestWaitContextContextCancel(t *testing.T) {
@@ -97,9 +94,9 @@ func TestWaitContextContextCancel(t *testing.T) {
 	}
 
 	err := graceful.WaitContext(ctx, runner)
-	if err == nil {
-		t.Fatal("Expected an error due to context cancellation, got nil")
-	}
+
+	assert.Error(t, err)
+
 	if !errors.Is(err, context.DeadlineExceeded) && !errors.Is(err, context.Canceled) {
 		t.Fatalf("Expected a context cancellation error, got %v", err)
 	}
