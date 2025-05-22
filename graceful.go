@@ -16,9 +16,9 @@ import (
 var ErrShutdownBySignal = errors.New("shutdown by signal")
 
 type HttpConfig struct {
-	Port         string        `envconfig:"PORT" json:"port" yaml:"port"`
-	ReadTimeout  time.Duration `envconfig:"READ_TIMEOUT" json:"read_timeout" yaml:"read_timeout"`
-	WriteTimeout time.Duration `envconfig:"WRITE_TIMEOUT" json:"write_timeout" yaml:"write_timeout"`
+	Port         string        `envconfig:"PORT" json:"port" yaml:"port" default:"8080"`
+	ReadTimeout  time.Duration `envconfig:"READ_TIMEOUT" json:"read_timeout" yaml:"read_timeout" default:"10s"`
+	WriteTimeout time.Duration `envconfig:"WRITE_TIMEOUT" json:"write_timeout" yaml:"write_timeout" default:"10s"`
 }
 
 type Runner func(ctx context.Context) error
