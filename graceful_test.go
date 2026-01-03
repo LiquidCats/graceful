@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/LiquidCats/graceful"
+	"github.com/LiquidCats/graceful/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

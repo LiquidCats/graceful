@@ -9,7 +9,43 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-func ServerRunner(router http.Handler, cfg HttpConfig) Runner {
+type server struct {
+	Port         string        `envconfig:"PORT" json:"port" yaml:"port" default:"8080"`
+	ReadTimeout  time.Duration `envconfig:"READ_TIMEOUT" json:"read_timeout" yaml:"read_timeout" default:"10s"`
+	WriteTimeout time.Duration `envconfig:"WRITE_TIMEOUT" json:"write_timeout" yaml:"write_timeout" default:"10s"`
+}
+
+type ServerOpt func(*server)
+
+func WithPort(port string) ServerOpt {
+	return func(s *server) {
+		s.Port = port
+	}
+}
+
+func WithReadTimeout(timeout time.Duration) ServerOpt {
+	return func(s *server) {
+		s.ReadTimeout = timeout
+	}
+}
+
+func WithWriteTimeout(timeout time.Duration) ServerOpt {
+	return func(s *server) {
+		s.WriteTimeout = timeout
+	}
+}
+
+func Server(router http.Handler, opts ...ServerOpt) Runner {
+	cfg := &server{
+		Port:         "8080",
+		ReadTimeout:  60 * time.Second,
+		WriteTimeout: 60 * time.Second,
+	}
+
+	for _, opt := range opts {
+		opt(cfg)
+	}
+
 	return func(ctx context.Context) error {
 		group, groupCtx := errgroup.WithContext(ctx)
 

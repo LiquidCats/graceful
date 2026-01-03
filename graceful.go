@@ -2,28 +2,21 @@ package graceful
 
 import (
 	"context"
-	"errors"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
+	"github.com/rotisserie/eris"
 	"golang.org/x/sync/errgroup"
 )
 
-var ErrShutdownBySignal = errors.New("shutdown by signal")
-
-type HttpConfig struct {
-	Port         string        `envconfig:"PORT" json:"port" yaml:"port" default:"8080"`
-	ReadTimeout  time.Duration `envconfig:"READ_TIMEOUT" json:"read_timeout" yaml:"read_timeout" default:"10s"`
-	WriteTimeout time.Duration `envconfig:"WRITE_TIMEOUT" json:"write_timeout" yaml:"write_timeout" default:"10s"`
-}
+var ErrShutdownBySignal = eris.New("shutdown by signal")
 
 type Runner func(ctx context.Context) error
 
 func Signals(ctx context.Context) error {
 	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGKILL)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 	defer signal.Stop(sigs)
 
 	for {
@@ -50,7 +43,7 @@ func WaitContext(ctx context.Context, runners ...Runner) error {
 		})
 	}
 
-	if err := group.Wait(); errors.Is(err, ErrShutdownBySignal) {
+	if err := group.Wait(); eris.Is(err, ErrShutdownBySignal) {
 		return nil
 	} else {
 		return err
