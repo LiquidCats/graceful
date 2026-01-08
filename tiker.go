@@ -11,20 +11,21 @@ import (
 var ErrTickerFailure = eris.New("ticker failure")
 
 type ticker struct {
-	logger zerolog.Logger
+	logger *zerolog.Logger
 }
 
 type TickerOpt func(*ticker)
 
-func WithTickerLogger(logger zerolog.Logger) TickerOpt {
+func WithTickerLogger(logger *zerolog.Logger) TickerOpt {
 	return func(t *ticker) {
 		t.logger = logger
 	}
 }
 
-func NewTicker(interval time.Duration, runner Runner, opts ...TickerOpt) Runner {
+func Ticker(interval time.Duration, runner Runner, opts ...TickerOpt) Runner {
+	noop := zerolog.Nop()
 	cfg := &ticker{
-		logger: zerolog.Nop(),
+		logger: &noop,
 	}
 	for _, opt := range opts {
 		opt(cfg)

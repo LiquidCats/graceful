@@ -10,12 +10,12 @@ import (
 var ErrWorkerFailure = eris.New("worker failure")
 
 type worker struct {
-	logger zerolog.Logger
+	logger *zerolog.Logger
 }
 
 type WorkerOpt func(*worker)
 
-func WithWorkerLogger(logger zerolog.Logger) WorkerOpt {
+func WithWorkerLogger(logger *zerolog.Logger) WorkerOpt {
 	return func(w *worker) {
 		w.logger = logger
 	}
@@ -24,8 +24,9 @@ func WithWorkerLogger(logger zerolog.Logger) WorkerOpt {
 type WorkerHandler[T any] func(context.Context, T) error
 
 func Worker[T any](ch <-chan T, runner WorkerHandler[T], opts ...WorkerOpt) Runner {
+	noop := zerolog.Nop()
 	cfg := &worker{
-		logger: zerolog.Nop(),
+		logger: &noop,
 	}
 	for _, opt := range opts {
 		opt(cfg)

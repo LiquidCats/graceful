@@ -22,7 +22,7 @@ func TestTickerRunsAtInterval(t *testing.T) {
 		atomic.AddInt32(&cnt, 1)
 		return nil
 	}
-	ticker := graceful.NewTicker(interval, runner)
+	ticker := graceful.Ticker(interval, runner)
 
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -44,7 +44,7 @@ func TestTickerRunsAtInterval(t *testing.T) {
 func TestTickerErrTickerFailure(t *testing.T) {
 	interval := 10 * time.Millisecond
 	runner := func(ctx context.Context) error { return graceful.ErrTickerFailure }
-	ticker := graceful.NewTicker(interval, runner)
+	ticker := graceful.Ticker(interval, runner)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	var wg sync.WaitGroup
@@ -76,7 +76,7 @@ func TestTickerNonFailureErrorLogged(t *testing.T) {
 	}
 	var buf bytes.Buffer
 	logger := zerolog.New(&buf)
-	ticker := graceful.NewTicker(interval, runner, graceful.WithTickerLogger(logger))
+	ticker := graceful.Ticker(interval, runner, graceful.WithTickerLogger(&logger))
 
 	ctx, cancel := context.WithCancel(context.Background())
 	var wg sync.WaitGroup
@@ -101,7 +101,7 @@ func TestTickerNonFailureErrorLogged(t *testing.T) {
 func TestTickerContextCancellation(t *testing.T) {
 	interval := 5 * time.Millisecond
 	runner := func(ctx context.Context) error { return nil }
-	ticker := graceful.NewTicker(interval, runner)
+	ticker := graceful.Ticker(interval, runner)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel() // cancel immediately
@@ -115,7 +115,7 @@ func TestTickerWithLogger(t *testing.T) {
 	runner := func(ctx context.Context) error { return nil }
 	var buf bytes.Buffer
 	logger := zerolog.New(&buf)
-	ticker := graceful.NewTicker(interval, runner, graceful.WithTickerLogger(logger))
+	ticker := graceful.Ticker(interval, runner, graceful.WithTickerLogger(&logger))
 
 	ctx, cancel := context.WithCancel(context.Background())
 	var wg sync.WaitGroup

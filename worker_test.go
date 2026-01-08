@@ -89,7 +89,7 @@ func TestOtherError(t *testing.T) {
 		return nil
 	}
 
-	runner := graceful.Worker[int](ch, handler, graceful.WithWorkerLogger(logger))
+	runner := graceful.Worker[int](ch, handler, graceful.WithWorkerLogger(&logger))
 
 	var wg sync.WaitGroup
 	wg.Add(1)
@@ -121,7 +121,7 @@ func TestWithWorkerLogger(t *testing.T) {
 
 	handler := func(ctx context.Context, v int) error { return nil }
 
-	runner := graceful.Worker[int](ch, handler, graceful.WithWorkerLogger(logger))
+	runner := graceful.Worker[int](ch, handler, graceful.WithWorkerLogger(&logger))
 
 	var wg sync.WaitGroup
 	wg.Add(1)
