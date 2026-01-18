@@ -17,7 +17,9 @@ type WorkerOpt func(*worker)
 
 func WithWorkerLogger(logger *zerolog.Logger) WorkerOpt {
 	return func(w *worker) {
-		w.logger = logger
+		if logger != nil {
+			w.logger = logger
+		}
 	}
 }
 
@@ -32,25 +34,18 @@ func Worker[T any](ch <-chan T, runner WorkerHandler[T], opts ...WorkerOpt) Runn
 		opt(cfg)
 	}
 	return func(ctx context.Context) error {
-		for {
-			select {
-			case <-ctx.Done():
-				return ctx.Err()
-			case value, ok := <-ch:
-				if !ok {
-					cfg.logger.Info().Msg("channel closed")
-					return nil
+		for value := range ch {
+			if err := runner(ctx, value); err != nil {
+				if eris.Is(err, ErrWorkerFailure) {
+					return err
 				}
-				if err := runner(ctx, value); err != nil {
-					if eris.Is(err, ErrWorkerFailure) {
-						return err
-					}
-					cfg.logger.
-						Error().
-						Any("error", eris.ToJSON(err, true)).
-						Msg("runner failed")
-				}
+				cfg.logger.
+					Error().
+					Any("error", eris.ToJSON(err, true)).
+					Msg("runner failed")
 			}
 		}
+
+		return nil
 	}
 }

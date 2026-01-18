@@ -101,3 +101,19 @@ func TestWaitContextContextCancel(t *testing.T) {
 		t.Fatalf("Expected a context cancellation error, got %v", err)
 	}
 }
+
+func TestWaitContextShutdownSignalIgnored(t *testing.T) {
+	ctx := context.Background()
+
+	runner1 := func(ctx context.Context) error {
+		return graceful.ErrShutdownBySignal
+	}
+
+	runner2 := func(ctx context.Context) error {
+		<-ctx.Done()
+		return nil
+	}
+
+	err := graceful.WaitContext(ctx, runner1, runner2)
+	assert.NoError(t, err)
+}

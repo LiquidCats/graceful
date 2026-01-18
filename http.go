@@ -6,13 +6,14 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/rotisserie/eris"
 	"golang.org/x/sync/errgroup"
 )
 
 type server struct {
-	Port         string        `envconfig:"PORT" json:"port" yaml:"port" default:"8080"`
-	ReadTimeout  time.Duration `envconfig:"READ_TIMEOUT" json:"read_timeout" yaml:"read_timeout" default:"10s"`
-	WriteTimeout time.Duration `envconfig:"WRITE_TIMEOUT" json:"write_timeout" yaml:"write_timeout" default:"10s"`
+	Port         string
+	ReadTimeout  time.Duration
+	WriteTimeout time.Duration
 }
 
 type ServerOpt func(*server)
@@ -58,7 +59,11 @@ func Server(router http.Handler, opts ...ServerOpt) Runner {
 		}
 
 		group.Go(func() error {
-			return server.ListenAndServe()
+			err := server.ListenAndServe()
+			if eris.Is(err, http.ErrServerClosed) {
+				return nil
+			}
+			return err
 		})
 
 		group.Go(func() error {

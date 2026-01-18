@@ -66,3 +66,11 @@ func TestServerStartsAndResponds(t *testing.T) {
 	cancel()
 	wg.Wait()
 }
+
+func TestServerInvalidPortReturnsError(t *testing.T) {
+	router := http.HandlerFunc(simplePingHandler)
+	runner := graceful.Server(router, graceful.WithPort("invalid-port"))
+
+	err := runner(context.Background())
+	assert.Error(t, err)
+}

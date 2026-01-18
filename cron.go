@@ -15,7 +15,10 @@ func ScheduleRunner(tasks ...Task) Runner {
 	cr := cron.New()
 
 	for _, task := range tasks {
-		_, _ = cr.AddFunc(task.Spec(), task.Run)
+		_, err := cr.AddFunc(task.Spec(), task.Run)
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	return func(ctx context.Context) error {

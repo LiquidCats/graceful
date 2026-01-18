@@ -18,11 +18,17 @@ type TickerOpt func(*ticker)
 
 func WithTickerLogger(logger *zerolog.Logger) TickerOpt {
 	return func(t *ticker) {
-		t.logger = logger
+		if logger != nil {
+			t.logger = logger
+		}
 	}
 }
 
 func Ticker(interval time.Duration, runner Runner, opts ...TickerOpt) Runner {
+	if interval <= 0 {
+		panic("interval must be greater than zero")
+	}
+
 	noop := zerolog.Nop()
 	cfg := &ticker{
 		logger: &noop,

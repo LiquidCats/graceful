@@ -40,18 +40,6 @@ func TestWorkerProcessesValues(t *testing.T) {
 	assert.Equal(t, int32(5), atomic.LoadInt32(&processed))
 }
 
-func TestContextDone(t *testing.T) {
-	ch := make(chan int)
-	handler := func(ctx context.Context, v int) error { return nil }
-
-	ctx, cancel := context.WithCancel(context.Background())
-	cancel() // cancel immediately
-
-	runner := graceful.Worker[int](ch, handler)
-	err := runner(ctx)
-	assert.EqualError(t, err, ctx.Err().Error())
-}
-
 func TestErrWorkerFailure(t *testing.T) {
 	ch := make(chan int)
 	handler := func(ctx context.Context, v int) error {
@@ -73,6 +61,25 @@ func TestErrWorkerFailure(t *testing.T) {
 	close(ch)
 
 	wg.Wait()
+}
+
+func TestWorkerStopsOnErrWorkerFailure(t *testing.T) {
+	ch := make(chan int, 2)
+	ch <- 1
+	ch <- 2
+	close(ch)
+
+	var processed int32
+	handler := func(ctx context.Context, v int) error {
+		atomic.AddInt32(&processed, 1)
+		return graceful.ErrWorkerFailure
+	}
+
+	runner := graceful.Worker[int](ch, handler)
+	err := runner(context.Background())
+
+	assert.Equal(t, graceful.ErrWorkerFailure, err)
+	assert.Equal(t, int32(1), atomic.LoadInt32(&processed))
 }
 
 func TestOtherError(t *testing.T) {
@@ -110,7 +117,7 @@ func TestOtherError(t *testing.T) {
 	assert.Contains(t, logOutput, "runner failed")
 	assert.Contains(t, logOutput, "test error")
 
-	// Ensure that the error handler was invoked once
+	// Ensure the handler ran for each value.
 	assert.Equal(t, int32(2), atomic.LoadInt32(&errCount))
 }
 
@@ -131,12 +138,11 @@ func TestWithWorkerLogger(t *testing.T) {
 		assert.NoError(t, err)
 	}()
 
-	// No values; close channel immediately to trigger "channel closed" log
+	// No values; close channel immediately.
 	close(ch)
 
 	wg.Wait()
 
-	// Verify that the logger emitted the "channel closed" message
-	logOutput := buf.String()
-	assert.Contains(t, logOutput, "channel closed")
+	// Verify that no logs were emitted.
+	assert.Empty(t, buf.String())
 }

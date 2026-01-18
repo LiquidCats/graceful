@@ -43,9 +43,10 @@ func WaitContext(ctx context.Context, runners ...Runner) error {
 		})
 	}
 
-	if err := group.Wait(); eris.Is(err, ErrShutdownBySignal) {
+	err := group.Wait()
+	if eris.Is(err, ErrShutdownBySignal) {
 		return nil
-	} else {
-		return err
 	}
+
+	return eris.Wrap(err, "shutting down with error")
 }
