@@ -1,3 +1,7 @@
+Project was moved into mono repo: https://github.com/LiquidCats/paw
+
+**Current repository will be removed on 01.01.2027**
+
 # Graceful
 
 Graceful is a lightweight Go package that provides utilities for managing graceful shutdown of your applications. It offers helper functions to handle OS signals (SIGINT, SIGTERM) and to execute multiple concurrent tasks with proper cancellation support.
